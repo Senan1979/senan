@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHL Navigator - Zustellbezirk 92224-08</title>
+<style>
+
+
+  :root {
+    --dhl-yellow: #FFCC00;
+    --dhl-red: #D40511;
+    --dark: #1a1a1a;
+    --card-bg: #222;
+    --done: #2ecc71;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--dark);
+    color: #fff;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  header {
+    background: var(--dhl-red);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(212,5,17,0.5);
+  }
+
+  .logo { font-size: 28px; font-weight: 900; color: var(--dhl-yellow); letter-spacing: 2px; }
+
+  .progress-info { text-align: right; font-size: 13px; color: rgba(255,255,255,0.9); }
+  .progress-info span { display: block; font-weight: 700; font-size: 16px; color: var(--dhl-yellow); }
+
+  .progress-bar-wrap { background: rgba(0,0,0,0.3); height: 6px; width: 100%; }
+  .progress-bar-fill { height: 6px; background: var(--dhl-yellow); transition: width 0.4s ease; }
+
+  .current-hero {
+    margin: 16px;
+    background: linear-gradient(135deg, #2a2a00, #3a3000);
+    border: 2px solid var(--dhl-yellow);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .current-hero::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: rgba(255,204,0,0.08);
+    border-radius: 50%;
+  }
+
+  .stop-badge {
+    display: inline-block;
+    background: var(--dhl-yellow);
+    color: #000;
+    font-weight: 900;
+    font-size: 13px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .current-street {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--dhl-yellow);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .current-numbers { font-size: 14px; color: rgba(255,255,255,0.8); line-height: 1.6; }
+  .current-numbers strong {
+    color: #fff;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 2px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .nav-buttons { display: flex; gap: 10px; margin-top: 16px; }
+
+  .btn-done {
+    flex: 1;
+    background: var(--done);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-done:active { transform: scale(0.97); }
+
+  .btn-prev {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-prev:active { transform: scale(0.97); }
+
+  .next-preview {
+    margin: 0 16px 16px;
+    background: #2a2a2a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border-left: 4px solid #555;
+  }
+  .next-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .next-street { font-size: 16px; font-weight: 700; color: #ccc; }
+
+  .section-title { padding: 8px 16px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
+
+  .route-list { padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
+
+  .stop-item {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .stop-item.done { opacity: 0.4; background: #1e1e1e; }
+  .stop-item.done .stop-num { background: var(--done); }
+  .stop-item.active { border-color: var(--dhl-yellow); background: #2a2700; }
+
+  .stop-num {
+    min-width: 32px;
+    height: 32px;
+    background: #444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 12px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .stop-item.active .stop-num { background: var(--dhl-yellow); color: #000; }
+
+  .stop-info { flex: 1; }
+  .stop-street { font-size: 14px; font-weight: 700; color: #ddd; }
+  .stop-item.active .stop-street { color: var(--dhl-yellow); }
+  .stop-hnr { font-size: 12px; color: #777; margin-top: 2px; line-height: 1.5; }
+
+  .stop-ab {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .stop-ab.A { background: rgba(255,204,0,0.15); color: var(--dhl-yellow); }
+  .stop-ab.B { background: rgba(212,5,17,0.15); color: #ff6b6b; }
+
+  .done-check { color: var(--done); font-size: 18px; align-self: center; }
+
+  .completed-screen { display: none; text-align: center; padding: 60px 20px; }
+  .completed-screen .emoji { font-size: 80px; margin-bottom: 20px; }
+  .completed-screen h2 { font-size: 28px; color: var(--dhl-yellow); margin-bottom: 10px; }
+  .completed-screen p { color: #aaa; }
+
+  .btn-reset {
+    margin-top: 30px;
+    background: var(--dhl-red);
+    color: #fff;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">DHL</div>
+  <div class="progress-info">
+    Fortschritt <span id="progressText">0 / 48</span>
+  </div>
+</header>
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+</div>
+
+<div id="mainContent">
+  <div class="current-hero" id="currentHero">
+    <div class="stop-badge" id="currentBadge">Abschnitt 1</div>
+    <div class="current-street" id="currentStreet">Wird geladen...</div>
+    <div class="current-numbers">
+      <strong>Hausnummern</strong>
+      <span id="currentNumbers"></span>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-prev" onclick="prevStop()">◀ Zurück</button>
+      <button class="btn-done" onclick="nextStop()">✔ Zugestellt ▶</button>
+    </div>
+  </div>
+
+  <div class="next-preview" id="nextPreview">
+    <div class="next-label">Nächster Abschnitt</div>
+    <div class="next-street" id="nextStreet">—</div>
+  </div>
+
+  <div class="section-title">Alle Abschnitte</div>
+  <div class="route-list" id="routeList"></div>
+</div>
+
+<div class="completed-screen" id="completedScreen">
+  <div class="emoji">🎉</div>
+  <h2>Bezirk abgeschlossen!</h2>
+  <p>Sehr gut! Alle Sendungen erfolgreich zugestellt.</p>
+  <button class="btn-reset" onclick="resetRoute()">🔄 Neu starten</button>
+</div>
+
+<script>
+const stops = [
+  { zab: 1, ab: 'A', plz: '92224', street: 'Merianstr.', hnr: '15, 13, 11' },
+  { zab: 2, ab: 'A', plz: '92224', street: 'Merianstr.', hnr: '9, 3, 3, 3, 1, 1, 1, 2, 2' },
+  { zab: 3, ab: '', plz: '92224', street: 'Krumbacher Str.', hnr: '10' },
+  { zab: '', ab: '', plz: '92224', street: 'Südtiroler Str.', hnr: '19' },
+  { zab: '', ab: '', plz: '92224', street: 'Krumbacher Str.', hnr: '2, 2, 1' },
+  { zab: 4, ab: 'A', plz: '92224', street: 'Berliner Str.', hnr: '1, 3, 5, 7, 9, 11, 11a, 11b, 11c, 11d, 13, 15' },
+  { zab: 5, ab: 'A', plz: '92224', street: 'Berliner Str.', hnr: '17, 19, 21, 23, 25, 27, 33, 35, 37, 39, 31, 29' },
+  { zab: 6, ab: 'A', plz: '92224', street: 'Berliner Str.', hnr: '47a, 47a, 47, 45, 43, 41, 49, 55, 53, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2' },
+  { zab: '', ab: '', plz: '92224', street: 'Berliner Str.', hnr: '2, 2, 1, 3, 4, 6, 8, 10, 12, 14' },
+  { zab: 7, ab: 'A', plz: '92224', street: 'Adam-Kraft-Str.', hnr: '2, 1, 4, 3, 6, 8, 5, 7, 10, 9, 12, 14' },
+  { zab: 8, ab: 'A', plz: '92224', street: 'Kopernikusstr.', hnr: '4, 2d, 2c, 2b, 2a, 2, 1' },
+  { zab: 9, ab: 'A', plz: '92224', street: 'Riemenschneiderstr.', hnr: '1, 3, 8, 6, 4, 2' },
+  { zab: 10, ab: 'A', plz: '92224', street: 'Veit-Stoß-Str.', hnr: '11, 13, 16, 18, 15, 20, 17' },
+  { zab: '', ab: '', plz: '92224', street: 'Kopernikusstr.', hnr: '10, 8a, 8, 4, 2' },
+  { zab: 11, ab: 'A', plz: '92224', street: 'Ägidienstr.', hnr: '52, 54, 56, 21, 31, 19, 17, 15, 23, 25, 27, 29, 13, 11, 9, 7, 5, 3, 1' },
+  { zab: 12, ab: 'A', plz: '92224', street: 'Friedlandstr.', hnr: '33, 35, 37, 39' },
+  { zab: 13, ab: 'A', plz: '92224', street: 'Friedlandstr.', hnr: '2, 4, 6, 10, 8, 12, 14, 16' },
+  { zab: 14, ab: 'A', plz: '92224', street: 'Friedlandstr.', hnr: '1' },
+  { zab: '', ab: '', plz: '92224', street: 'Ägidienstr.', hnr: '18, 20, 22, 24, 26, 28, 28a' },
+  { zab: 15, ab: 'A', plz: '92224', street: 'Friedlandstr.', hnr: '11, 13, 15, 17, 19, 21' },
+  { zab: '', ab: '', plz: '92224', street: 'Ägidienstr.', hnr: '50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30' },
+  { zab: '', ab: '', plz: '92224', street: 'Friedlandstr.', hnr: '1, 5, 7, 9, 11, 29' },
+  { zab: 16, ab: 'A', plz: '92224', street: 'Peter-Vischer-Str.', hnr: '20, 18, 16, 14, 12, 21a, 21, 19, 17, 15, 13, 11, 9, 10' },
+  { zab: '', ab: '', plz: '92224', street: 'Egerer Str.', hnr: '32, 34, 36, 38, 40, 30, 28, 26, 24, 22, 23, 25, 27, 42' },
+  { zab: 17, ab: 'A', plz: '92224', street: 'Egerer Str.', hnr: '44, 46' },
+  { zab: 18, ab: 'A', plz: '92224', street: 'Egerer Str.', hnr: '12, 3, 5, 7, 9' },
+  { zab: '', ab: '', plz: '92224', street: 'Ägidienstr.', hnr: '49, 51, 53, 34, 32, 30, 28, 26, 24, 22' },
+  { zab: 19, ab: 'B', plz: '92224', street: 'Peter-Vischer-Str.', hnr: '49, 51, 53, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16' },
+  { zab: 20, ab: 'B', plz: '92224', street: 'Peter-Vischer-Str.', hnr: '43, 45, 47, 41, 35, 39, 33, 37, 31, 20, 18, 3' },
+  { zab: 21, ab: 'B', plz: '92224', street: 'Peter-Vischer-Str.', hnr: '21, 25, 23, 27, 13, 15, 15a, 17, 19, 3' },
+  { zab: '', ab: '', plz: '92224', street: 'Ritter-von-Walter-Str.', hnr: '7, 9' },
+  { zab: 22, ab: 'B', plz: '92224', street: 'Peter-Henlein-Str.', hnr: '8, 6, 4, 2, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39' },
+  { zab: 23, ab: 'B', plz: '92224', street: 'Peter-Henlein-Str.', hnr: '41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63, 65, 67, 69, 71, 73, 75, 77, 79, 81, 83, 85, 87, 89, 91, 93, 95, 97' },
+  { zab: 24, ab: 'B', plz: '92224', street: 'Egerer Str.', hnr: '7a, 7, 5, 3, 2, 1' },
+  { zab: 25, ab: 'B', plz: '92224', street: 'Dürrstr.', hnr: '1, 3, 5, 4, 7, 7a, 7b, 7c, 7d, 4a, 6, 7e, 7f' },
+  { zab: 26, ab: 'B', plz: '92224', street: 'Dürrstr.', hnr: '9, 11, 8, 11, 15, 17, 19, 8, 2, 21, 23' },
+  { zab: 27, ab: 'B', plz: '92224', street: 'Lintacher Steig', hnr: '1a, 1, 1b, 3, 7, 13, 18' },
+  { zab: 28, ab: 'B', plz: '92224', street: 'Krumbacher Kirchenleite', hnr: '2' },
+  { zab: '', ab: '', plz: '92224', street: 'Lintacher Steig', hnr: '16, 20' },
+  { zab: 29, ab: 'B', plz: '92224', street: 'Auf der Ruite', hnr: '7, 7a, 12, 14, 9' },
+  { zab: 30, ab: 'B', plz: '92224', street: 'Lintacher Steig', hnr: '37, 41, 39, 38, 36, 34, 32, 30, 26, 28, 24, 22' },
+  { zab: 31, ab: 'B', plz: '92224', street: 'Begelleite', hnr: '1, 3, 5, 7, 9, 11, 13' },
+  { zab: 32, ab: 'B', plz: '92224', street: 'Begelleite', hnr: '23, 21, 18, 16, 14' },
+  { zab: 33, ab: 'B', plz: '92224', street: 'Pfaffenleite', hnr: '3, 7, 9, 12, 4, 2' },
+  { zab: '', ab: '', plz: '92224', street: 'Begelleite', hnr: '12, 6, 6a' },
+  { zab: 34, ab: 'B', plz: '92224', street: 'Krumbacher Kirchenleite', hnr: '1, 3, 5' },
+  { zab: 35, ab: 'B', plz: '92224', street: 'Begelleite', hnr: '8' },
+  { zab: '', ab: '', plz: '92224', street: 'Am Kuhberg', hnr: '7' },
+  { zab: '', ab: '', plz: '92224', street: 'Begelleite', hnr: '18' },
+  { zab: '', ab: '', plz: '92224', street: 'Am Kuhberg', hnr: '20, 18, 16, 14' },
+  { zab: 36, ab: 'B', plz: '92224', street: 'Johannisweg', hnr: '10, 6, 1, 4' },
+  { zab: 37, ab: 'B', plz: '92224', street: 'Am Kuhberg', hnr: '6, 4, 4, 2' },
+  { zab: 38, ab: 'B', plz: '92224', street: 'Krumbacher Kirchenleite', hnr: '20, 18, 16, 14, 12, 10, 4' },
+  { zab: 39, ab: 'B', plz: '92224', street: 'Mistelbeckstr.', hnr: '1, 3, 5, 7' },
+  { zab: 40, ab: 'B', plz: '92224', street: 'Mistelbeckstr.', hnr: '12, 10a, 10, 8, 6, 4a, 4, 2' },
+  { zab: 41, ab: 'B', plz: '92224', street: 'Lintacher Steig', hnr: '6, 6a, 4, 4a, 2, 2a' },
+  { zab: 42, ab: 'B', plz: '92224', street: 'Karl-Bauer-Str.', hnr: '1, 3, 5' },
+  { zab: '', ab: '', plz: '92224', street: 'Dr.-Ehrensberger-Str.', hnr: '20, 11, 18, 9, 16a, 16, 14, 12, 7, 5, 10, 8, 6, 4, 3, 1, 2' },
+  { zab: 43, ab: 'B', plz: '92224', street: 'Karl-Bauer-Str.', hnr: '7, 9, 2, 4, 13, 6, 15, 17, 19, 21, 23, 25' },
+  { zab: 44, ab: 'B', plz: '92224', street: 'Ritter-von-Walter-Str.', hnr: '2, 1, 4, 3, 6, 5, 8, 10' },
+  { zab: 45, ab: 'B', plz: '92224', street: 'Dr.-Steininger-Str.', hnr: '28, 26, 24, 22, 20, 18, 16, 14, 12, 6, 4, 2, 1, 3, 5, 7' },
+  { zab: 46, ab: 'B', plz: '92224', street: 'Josef-Regner-Weg', hnr: '2, 4, 6, 8, 10' },
+  { zab: '', ab: '', plz: '92224', street: 'Ernst-Herrmann-Str.', hnr: '15, 17, 19, 21, 23, 25, 27' },
+  { zab: 47, ab: 'B', plz: '92224', street: 'Josef-Kallmünzer-Str.', hnr: '22, 11a, 11, 20, 9a, 9, 7a, 7, 18, 16, 14, 12, 5A, 5, 10, 8, 6, 4, 3, 2, 1' },
+  { zab: 48, ab: 'B', plz: '92224', street: 'Ernst-Herrmann-Str.', hnr: '8, 11, 9, 7, 6, 3, 3a, 5, 4, 2, 1' },
+];
+
+let currentIndex = 0;
+
+function getStopLabel(stop) {
+  return stop.zab ? `Abschnitt ${stop.zab}` : '↳ Fortsetzung';
+}
+
+function renderList() {
+  const list = document.getElementById('routeList');
+  list.innerHTML = '';
+  stops.forEach((stop, i) => {
+    const div = document.createElement('div');
+    div.className = 'stop-item' + (i < currentIndex ? ' done' : i === currentIndex ? ' active' : '');
+    div.onclick = () => jumpTo(i);
+
+    const numDiv = document.createElement('div');
+    numDiv.className = 'stop-num';
+    numDiv.textContent = stop.zab || '↳';
+
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'stop-info';
+    infoDiv.innerHTML = `<div class="stop-street">${stop.street}</div><div class="stop-hnr">HNr: ${stop.hnr}</div>`;
+
+    div.appendChild(numDiv);
+    div.appendChild(infoDiv);
+
+    if (stop.ab) {
+      const abDiv = document.createElement('div');
+      abDiv.className = `stop-ab ${stop.ab}`;
+      abDiv.textContent = stop.ab;
+      div.appendChild(abDiv);
+    }
+
+    if (i < currentIndex) {
+      const check = document.createElement('div');
+      check.className = 'done-check';
+      check.textContent = '✔';
+      div.appendChild(check);
+    }
+
+    list.appendChild(div);
+  });
+}
+
+function updateHero() {
+  if (currentIndex >= stops.length) {
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('completedScreen').style.display = 'block';
+    return;
+  }
+  const stop = stops[currentIndex];
+  document.getElementById('currentBadge').textContent = getStopLabel(stop);
+  document.getElementById('currentStreet').textContent = stop.street;
+  document.getElementById('currentNumbers').textContent = stop.hnr;
+
+  const next = stops[currentIndex + 1];
+  document.getElementById('nextStreet').textContent = next
+    ? `${next.zab ? 'Abschnitt ' + next.zab + ' – ' : ''}${next.street}`
+    : '🏁 Letzter Abschnitt!';
+
+  const pct = Math.round((currentIndex / stops.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${currentIndex} / ${stops.length}`;
+
+  setTimeout(() => {
+    const items = document.querySelectorAll('.stop-item');
+    if (items[currentIndex]) {
+      items[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
+}
+
+function nextStop() {
+  if (currentIndex < stops.length) {
+    currentIndex++;
+    updateHero();
+    renderList();
+  }
+}
+
+function prevStop() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    updateHero();
+    renderList();
+  }
+}
+
+function jumpTo(i) {
+  currentIndex = i;
+  updateHero();
+  renderList();
+}
+
+function resetRoute() {
+  currentIndex = 0;
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('completedScreen').style.display = 'none';
+  updateHero();
+  renderList();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderList();
+  updateHero();
+});
+</script>
+</body>
+</html>
